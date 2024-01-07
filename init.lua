@@ -113,7 +113,7 @@ require('lazy').setup({
   },
 
   -- Useful plugin to show you pending keybinds.
-  { 'folke/which-key.nvim', opts = {} },
+  { 'folke/which-key.nvim',  opts = {} },
   {
     -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
@@ -190,11 +190,10 @@ require('lazy').setup({
   },
 
   {
-    -- Theme inspired by Atom
-    'navarasu/onedark.nvim',
+    'rebelot/kanagawa.nvim',
     priority = 1000,
     config = function()
-      vim.cmd.colorscheme 'onedark'
+      vim.cmd.colorscheme 'kanagawa'
     end,
   },
 
@@ -266,7 +265,7 @@ require('lazy').setup({
   --    Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   --
   --    For additional information see: https://github.com/folke/lazy.nvim#-structuring-your-plugins
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
 }, {})
 
 -- [[ Setting options ]]
@@ -323,8 +322,8 @@ vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = tr
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
-vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
+vim.keymap.set('n', '<leader>de', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
+vim.keymap.set('n', '<leader>dq', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
 
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
@@ -656,6 +655,115 @@ cmp.setup {
     { name = 'path' },
   },
 }
+
+
+-- disable netrw at the very start of your init.lua
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+
+-- set termguicolors to enable highlight groups
+vim.opt.termguicolors = true
+
+local tree_api = require("nvim-tree")
+local tree_view = require("nvim-tree.view")
+
+local HEIGHT_RATIO = 0.8
+local WIDTH_RATIO = 0.5
+
+vim.api.nvim_create_augroup("NvimTreeResize", {
+  clear = true,
+})
+
+vim.api.nvim_create_autocmd({ "VimResized" }, {
+  group = "NvimTreeResize",
+  callback = function()
+    if tree_view.is_visible() then
+      tree_view.close()
+      tree_api.open()
+    end
+  end
+})
+-- empty setup using defaults
+require('nvim-tree').setup({
+  view = {
+    float = {
+      enable = true,
+      open_win_config = function()
+        local screen_w = vim.opt.columns:get()
+        local screen_h = vim.opt.lines:get() - vim.opt.cmdheight:get()
+        local window_w = screen_w * WIDTH_RATIO
+        local window_h = screen_h * HEIGHT_RATIO
+        local window_w_int = math.floor(window_w)
+        local window_h_int = math.floor(window_h)
+        local center_x = (screen_w - window_w) / 2
+        local center_y = ((vim.opt.lines:get() - window_h) / 2)
+            - vim.opt.cmdheight:get()
+        return {
+          border = 'rounded',
+          relative = 'editor',
+          row = center_y,
+          col = center_x,
+          width = window_w_int,
+          height = window_h_int,
+        }
+      end,
+    },
+    width = function()
+      return math.floor(vim.opt.columns:get() * WIDTH_RATIO)
+    end,
+  },
+})
+
+-- Nvim tree
+vim.api.nvim_set_keymap("n", "<Space>e", ":NvimTreeFindFile<cr>",
+  { silent = true, noremap = true, desc = "Open explorer" })
+
+-- Escape in terminal
+vim.api.nvim_set_keymap("t", "<ESC>", "<C-\\><C-n>", { noremap = true })
+
+-- Format on save
+vim.cmd [[autocmd BufWritePre * lua vim.lsp.buf.format()]]
+
+-- Harpoon
+vim.api.nvim_set_keymap(
+  "n",
+  "<leader>ha",
+  ":lua require(\"harpoon.mark\").add_file()<cr>",
+  { desc = 'Add file in harpoon' }
+)
+
+vim.api.nvim_set_keymap(
+  "n",
+  "<leader>hh",
+  ":lua require(\"harpoon.ui\").toggle_quick_menu()<cr>",
+  { desc = 'Add file in harpoon', silent = true }
+)
+
+vim.api.nvim_set_keymap(
+  "n",
+  "<leader>h1",
+  ":lua require(\"harpoon.ui\").nav_file(1)<cr>",
+  { desc = 'Add file in harpoon', silent = true }
+)
+vim.api.nvim_set_keymap(
+  "n",
+  "<leader>h2",
+  ":lua require(\"harpoon.ui\").nav_file(2)<cr>",
+  { desc = 'Add file in harpoon', silent = true }
+)
+vim.api.nvim_set_keymap(
+  "n",
+  "<leader>h3",
+  ":lua require(\"harpoon.ui\").nav_file(3)<cr>",
+  { desc = 'Add file in harpoon', silent = true }
+)
+vim.api.nvim_set_keymap(
+  "n",
+  "<leader>h4",
+  ":lua require(\"harpoon.ui\").nav_file(4)<cr>",
+  { desc = 'Add file in harpoon', silent = true }
+)
+
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
